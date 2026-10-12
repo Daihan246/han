@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GHN Express - Hệ Thống 2 Tab Linh Hoạt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .ghn-orange { background-color: #f36f21; }
+        .ghn-orange-text { color: #f36f21; }
+        .ghn-orange:hover { background-color: #d95e19; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <!-- KHUNG ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <div id="auth-section" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-orange-50 to-orange-100">
+        <div class="bg-white rounded-xl shadow-lg max-w-md w-full p-8">
+            <div class="text-center mb-6">
+                <h1 class="text-3xl font-bold ghn-orange-text">GHN Express</h1>
+                <p class="text-gray-500 text-sm mt-1">Đăng nhập để sử dụng toàn bộ tính năng</p>
+            </div>
+
+            <div class="flex border-b mb-6">
+                <button onclick="switchAuthTab('login')" id="auth-tab-login" class="flex-1 pb-2 font-semibold text-center border-b-2 ghn-orange-text border-orange-500">Đăng Nhập</button>
+                <button onclick="switchAuthTab('register')" id="auth-tab-register" class="flex-1 pb-2 font-semibold text-center text-gray-400">Đăng Ký</button>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Tên đăng nhập</label>
+                    <input type="text" id="login-username" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Mật khẩu</label>
+                    <input type="password" id="login-password" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="remember-me" class="rounded text-orange-500 focus:ring-orange-400">
+                        <span class="ml-2 text-gray-600">Ghi nhớ tài khoản</span>
+                    </label>
+                </div>
+                <button type="submit" class="w-full py-3 ghn-orange text-white font-semibold rounded-lg shadow transition">Đăng Nhập</button>
+            </form>
+
+            <form id="register-form" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Họ và tên</label>
+                    <input type="text" id="reg-name" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Tên đăng nhập</label>
+                    <input type="text" id="reg-username" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Mật khẩu</label>
+                    <input type="password" id="reg-password" required class="mt-1 w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                </div>
+                <button type="submit" class="w-full py-3 ghn-orange text-white font-semibold rounded-lg shadow transition">Đăng Ký Tài Khoản</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- KHUNG ỨNG DỤNG CHÍNH -->
+    <div id="app-section" class="hidden min-h-screen flex flex-col">
+        <header class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-6">
+                <span class="text-2xl font-black ghn-orange-text tracking-wider">GHN</span>
+                
+                <!-- 2 TAB SỬ DỤNG TỰ DO DÀNH CHO MỌI TÀI KHOẢN -->
+                <nav class="flex space-x-2">
+                    <button onclick="switchAppTab('customer')" id="nav-tab-customer" class="px-4 py-2 rounded-lg font-semibold text-sm bg-orange-100 ghn-orange-text transition">
+                        <i class="fa-solid fa-box-open mr-1"></i> Tab Khách Hàng (Tạo Đơn)
+                    </button>
+                    <button onclick="switchAppTab('admin')" id="nav-tab-admin" class="px-4 py-2 rounded-lg font-semibold text-sm text-gray-600 hover:bg-gray-100 transition">
+                        <i class="fa-solid fa-sliders mr-1"></i> Tab Quản Lý Admin
+                    </button>
+                </nav>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <span id="user-welcome" class="text-sm font-medium text-gray-700"></span>
+                <button onclick="handleLogout()" class="text-sm text-red-600 hover:underline"><i class="fa-solid fa-right-from-bracket mr-1"></i>Đăng xuất</button>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto p-6">
+            
+            <!-- TAB 1: KHÁCH HÀNG TẠO ĐƠN -->
+            <div id="tab-content-customer" class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-truck-fast ghn-orange-text mr-2"></i>Tạo Đơn Hàng Mới</h2>
+                    <form onsubmit="createOrder(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Tên người nhận</label>
+                            <input type="text" id="receiver-name" required class="mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Số điện thoại nhận</label>
+                            <input type="text" id="receiver-phone" required class="mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Địa chỉ người nhận chi tiết</label>
+                            <input type="text" id="receiver-address" required placeholder="Số nhà, tên đường, Phường/Xã, Quận/Huyện..." class="mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Tên sản phẩm</label>
+                            <input type="text" id="item-name" required class="mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Tiền thu hộ COD (VNĐ)</label>
+                            <input type="number" id="item-cod" value="0" class="mt-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="w-full py-3 ghn-orange text-white font-semibold rounded-lg shadow transition">Tạo Đơn Ngay</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Danh Sách Đơn Hàng Dưới Tên Bạn</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-gray-100 border-b">
+                                    <th class="p-3">Mã Vận Đơn</th>
+                                    <th class="p-3">Người Nhận</th>
+                                    <th class="p-3">Sản Phẩm (COD)</th>
+                                    <th class="p-3">Trạng Thái Hiện Tại</th>
+                                    <th class="p-3">Hành Trình Gần Nhất</th>
+                                </tr>
+                            </thead>
+                            <tbody id="my-orders-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: QUẢN LÝ ADMIN (CÓ TÍNH NĂNG NHẬP VỊ TRÍ ĐỊA CHỈ TÙY CHỈNH) -->
+            <div id="tab-content-admin" class="space-y-6 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Tổng đơn toàn hệ thống</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="stat-total">0</h3>
+                        </div>
+                        <i class="fa-solid fa-boxes-stacked text-3xl text-orange-500"></i>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Đang giao / Đã tiếp nhận</p>
+                            <h3 class="text-2xl font-bold text-blue-600" id="stat-shipping">0</h3>
+                        </div>
+                        <i class="fa-solid fa-truck text-3xl text-blue-500"></i>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Giao thành công</p>
+                            <h3 class="text-2xl font-bold text-green-600" id="stat-success">0</h3>
+                        </div>
+                        <i class="fa-solid fa-circle-check text-3xl text-green-500"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-pen-to-square ghn-orange-text mr-2"></i>Cập Nhật Trạng Thái & Địa Chỉ Giao Hàng</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-gray-100 border-b">
+                                    <th class="p-3">Mã Vận Đơn</th>
+                                    <th class="p-3">Khách Tạo</th>
+                                    <th class="p-3">Người Nhận & Địa Chỉ Đích</th>
+                                    <th class="p-3">Trạng Thái Bưu Kiện</th>
+                                    <th class="p-3">Cập Nhật Trạng Thái & Vị Trí Hiện Tại</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-orders-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        if (!localStorage.getItem('ghn_users')) {
+            localStorage.setItem('ghn_users', JSON.stringify([
+                { name: 'Quản Trị Viên', username: 'admin', password: '123456', role: 'admin' }
+            ]));
+        }
+        if (!localStorage.getItem('ghn_orders')) {
+            localStorage.setItem('ghn_orders', JSON.stringify([]));
+        }
+
+        window.onload = function() {
+            const rememberedUser = localStorage.getItem('ghn_remembered_user');
+            if (rememberedUser) {
+                loginSuccess(JSON.parse(rememberedUser));
+            }
+        };
+
+        function switchAuthTab(tab) {
+            if (tab === 'login') {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('register-form').classList.add('hidden');
+                document.getElementById('auth-tab-login').className = "flex-1 pb-2 font-semibold text-center border-b-2 ghn-orange-text border-orange-500";
+                document.getElementById('auth-tab-register').className = "flex-1 pb-2 font-semibold text-center text-gray-400";
+            } else {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+                document.getElementById('auth-tab-register').className = "flex-1 pb-2 font-semibold text-center border-b-2 ghn-orange-text border-orange-500";
+                document.getElementById('auth-tab-login').className = "flex-1 pb-2 font-semibold text-center text-gray-400";
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+
+            let users = JSON.parse(localStorage.getItem('ghn_users'));
+            if (users.some(u => u.username === username)) {
+                alert('Tên đăng nhập đã tồn tại!');
+                return;
+            }
+
+            users.push({ name, username, password, role: 'customer' });
+            localStorage.setItem('ghn_users', JSON.stringify(users));
+            alert('Đăng ký thành công!');
+            switchAuthTab('login');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const remember = document.getElementById('remember-me').checked;
+
+            let users = JSON.parse(localStorage.getItem('ghn_users'));
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (!user) {
+                alert('Sai tên đăng nhập hoặc mật khẩu!');
+                return;
+            }
+
+            if (remember) {
+                localStorage.setItem('ghn_remembered_user', JSON.stringify(user));
+            }
+            localStorage.setItem('ghn_current_user', JSON.stringify(user));
+            loginSuccess(user);
+        }
+
+        function loginSuccess(user) {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('app-section').classList.remove('hidden');
+            document.getElementById('user-welcome').innerText = `Tài khoản: ${user.name}`;
+            switchAppTab('customer');
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('ghn_current_user');
+            localStorage.removeItem('ghn_remembered_user');
+            location.reload();
+        }
+
+        // CHUYỂN TAB TỰ DO DỄ DÀNG
+        function switchAppTab(tabName) {
+            const customerTab = document.getElementById('tab-content-customer');
+            const adminTab = document.getElementById('tab-content-admin');
+            const btnCustomer = document.getElementById('nav-tab-customer');
+            const btnAdmin = document.getElementById('nav-tab-admin');
+
+            if (tabName === 'customer') {
+                customerTab.classList.remove('hidden');
+                adminTab.classList.add('hidden');
+                btnCustomer.className = "px-4 py-2 rounded-lg font-semibold text-sm bg-orange-100 ghn-orange-text transition";
+                btnAdmin.className = "px-4 py-2 rounded-lg font-semibold text-sm text-gray-600 hover:bg-gray-100 transition";
+                loadCustomerData();
+            } else {
+                adminTab.classList.remove('hidden');
+                customerTab.classList.add('hidden');
+                btnAdmin.className = "px-4 py-2 rounded-lg font-semibold text-sm bg-orange-100 ghn-orange-text transition";
+                btnCustomer.className = "px-4 py-2 rounded-lg font-semibold text-sm text-gray-600 hover:bg-gray-100 transition";
+                loadAdminData();
+            }
+        }
+
+        function createOrder(e) {
+            e.preventDefault();
+            const currentUser = JSON.parse(localStorage.getItem('ghn_current_user'));
+            const initialAddress = document.getElementById('receiver-address').value;
+            
+            const newOrder = {
+                trackingCode: 'GHN' + Math.floor(100000 + Math.random() * 900000),
+                creator: currentUser.username,
+                receiverName: document.getElementById('receiver-name').value,
+                receiverPhone: document.getElementById('receiver-phone').value,
+                receiverAddress: initialAddress,
+                itemName: document.getElementById('item-name').value,
+                cod: document.getElementById('item-cod').value,
+                status: 'Đã khởi tạo đơn hàng',
+                currentLocation: 'Khởi tạo tại địa chỉ người gửi',
+                history: [
+                    { 
+                        time: new Date().toLocaleString(), 
+                        status: 'Đã khởi tạo đơn hàng',
+                        location: 'Shop đã nhận thông tin đơn hàng' 
+                    }
+                ]
+            };
+
+            let orders = JSON.parse(localStorage.getItem('ghn_orders'));
+            orders.unshift(newOrder);
+            localStorage.setItem('ghn_orders', JSON.stringify(orders));
+
+            alert('Tạo đơn thành công! Mã vận đơn: ' + newOrder.trackingCode);
+            e.target.reset();
+            loadCustomerData();
+        }
+
+        function loadCustomerData() {
+            const currentUser = JSON.parse(localStorage.getItem('ghn_current_user'));
+            let orders = JSON.parse(localStorage.getItem('ghn_orders'));
+            let myOrders = orders.filter(o => o.creator === currentUser.username);
+
+            let html = '';
+            if (myOrders.length === 0) {
+                html = `<tr><td colspan="5" class="p-4 text-center text-gray-400">Chưa có đơn hàng nào do bạn tạo.</td></tr>`;
+            } else {
+                myOrders.forEach(o => {
+                    const lastHistory = o.history && o.history.length > 0 ? o.history[0] : { location: 'Chưa có' };
+                    html += `<tr class="border-b">
+                        <td class="p-3 font-semibold ghn-orange-text">${o.trackingCode}</td>
+                        <td class="p-3">${o.receiverName} (${o.receiverPhone})</td>
+                        <td class="p-3">${o.itemName}<br><span class="text-xs text-orange-600">COD: ${Number(o.cod).toLocaleString()}đ</span></td>
+                        <td class="p-3"><span class="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-semibold">${o.status}</span></td>
+                        <td class="p-3 text-xs text-gray-600"><i class="fa-solid fa-location-dot ghn-orange-text mr-1"></i>${lastHistory.location}</td>
+                    </tr>`;
+                });
+            }
+            document.getElementById('my-orders-list').innerHTML = html;
+        }
+
+        function loadAdminData() {
+            let orders = JSON.parse(localStorage.getItem('ghn_orders'));
+            
+            document.getElementById('stat-total').innerText = orders.length;
+            document.getElementById('stat-shipping').innerText = orders.filter(o => !o.status.includes('thành công')).length;
+            document.getElementById('stat-success').innerText = orders.filter(o => o.status.includes('thành công')).length;
+
+            let html = '';
+            if (orders.length === 0) {
+                html = `<tr><td colspan="5" class="p-4 text-center text-gray-400">Chưa có đơn hàng nào trong hệ thống.</td></tr>`;
+            } else {
+                orders.forEach(o => {
+                    html += `<tr class="border-b">
+                        <td class="p-3 font-semibold ghn-orange-text">${o.trackingCode}</td>
+                        <td class="p-3 text-gray-500">${o.creator}</td>
+                        <td class="p-3"><b>${o.receiverName}</b><br><span class="text-xs text-gray-500">${o.receiverAddress}</span></td>
+                        <td class="p-3">
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium block w-fit mb-1">${o.status}</span>
+                            <span class="text-xs text-gray-500"><i class="fa-solid fa-map-pin mr-1"></i>Vị trí: ${o.currentLocation || 'Mới khởi tạo'}</span>
+                        </td>
+                        <td class="p-3 space-y-2">
+                            <select id="status-select-${o.trackingCode}" class="text-xs border p-1.5 rounded w-full bg-white">
+                                <option value="Đã tiếp nhận tại kho phân loại">1. Đã tiếp nhận tại kho</option>
+                                <option value="Đang vận chuyển liên tỉnh">2. Đang vận chuyển</option>
+                                <option value="Shipper đang giao hàng">3. Shipper đang giao hàng</option>
+                                <option value="Giao hàng thành công">4. Giao hàng thành công</option>
+                                <option value="Giao thất bại - Hoàn hàng">5. Hoàn hàng</option>
+                            </select>
+                            <input type="text" id="location-input-${o.trackingCode}" placeholder="Nhập vị trí/địa chỉ hiện tại..." class="text-xs border p-1.5 rounded w-full focus:outline-none focus:border-orange-500">
+                            <button onclick="updateOrderLocation('${o.trackingCode}')" class="w-full text-xs py-1.5 ghn-orange text-white font-medium rounded shadow hover:opacity-90">
+                                Cập Nhật Vị Trí & Trạng Thái
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            document.getElementById('admin-orders-list').innerHTML = html;
+        }
+
+        // HÀM CẬP NHẬT TRẠNG THÁI + ĐỊA CHỈ TÙY CHỈNH
+        function updateOrderLocation(trackingCode) {
+            const statusSelect = document.getElementById(`status-select-${trackingCode}`).value;
+            const locationInput = document.getElementById(`location-input-${trackingCode}`).value.trim();
+
+            if (!locationInput) {
+                alert('Vui lòng nhập Địa chỉ / Vị trí hiện tại của đơn hàng!');
+                return;
+            }
+
+            let orders = JSON.parse(localStorage.getItem('ghn_orders'));
+            let order = orders.find(o => o.trackingCode === trackingCode);
+
+            if (order) {
+                order.status = statusSelect;
+                order.currentLocation = locationInput;
+
+                if (!order.history) order.history = [];
+                // Thêm vào đầu lịch sử hành trình
+                order.history.unshift({
+                    time: new Date().toLocaleString(),
+                    status: statusSelect,
+                    location: locationInput
+                });
+
+                localStorage.setItem('ghn_orders', JSON.stringify(orders));
+                alert(`Cập nhật thành công cho mã ${trackingCode}!\nVị trí: ${locationInput}`);
+                loadAdminData();
+            }
+        }
+    </script>
+</body>
+</html>
